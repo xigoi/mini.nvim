@@ -45,35 +45,63 @@ MiniJump.config = {
 -- Module functionality
 H.target = nil
 
+--- Jump to target
+---
+--- Takes a string and jumps to the first occurence of it after the cursor.
+---
+--- @param target string: The string to jump to.
+--- @param backward boolean: If true, jump backward.
+--- @param till boolean: If true, jump just before/after the match instead of to the first character.
+---   Also ignore matches that don't have space before/after them. (This will probably be changed in the future.)
 function MiniJump.jump(target, backward, till)
+  backward = backward or false
+  till = till or false
   local flags = 'W'
   if backward then
-    flags = flags .. 'be'
+    flags = flags .. 'b'
   end
-  if target == [[\]] then
-    target = [[\\]]
-  end
-  local pattern = ([[\V%s]]):format(target)
+  local pattern = [[\V%s]]
   if till then
     if backward then
-      pattern = ([[\V%s\.]]):format(target)
+      pattern = [[\V%s\.]]
+      flags = flags .. 'e'
     else
-      pattern = ([[\V\.%s]]):format(target)
+      pattern = [[\V\.%s]]
     end
   end
+  pattern = pattern:format(vim.fn.escape(target, [[\]]))
   vim.fn.search(pattern, flags)
 end
 
-function MiniJump.smart_jump(backward, till)
-  local target = H.target or H.get_char()
+--- Smart jump
+---
+--- If the last movement was a jump, perform another jump with the same target.
+--- Otherwise, prompt for a target. Respects v:count.
+---
+--- @param num_chars number: The length of the target to prompt for.
+--- @param backward boolean: If true, jump backward.
+--- @param till boolean: If true, jump just before/after the match instead of to the first character.
+---   Also ignore matches that don't have space before/after them. (This will probably be changed in the future.)
+function MiniJump.smart_jump(num_chars, backward, till)
+  num_chars = num_chars or 1
+  backward = backward or false
+  till = till or false
+  local target = H.target or H.get_chars(num_chars)
   MiniJump.jump(target, backward, till)
+  for _ = 2, vim.v.count do
+    MiniJump.jump(target, backward, till)
+  end
   -- This has to be scheduled so it doesn't get overridden by CursorMoved from the jump.
   vim.schedule(function()
     H.target = target
   end)
 end
 
-function MiniJump.on_cursor_moved()
+--- Reset target
+---
+--- Forces the next smart jump to prompt for the target.
+--- Triggered automatically on CursorMoved, but can be also triggered manually.
+function MiniJump.reset_target()
   H.target = nil
 end
 
@@ -98,14 +126,15 @@ end
 function H.apply_config(config)
   MiniJump.config = config
 
-  mode = 'n'
-
   if config.map_ft then
-    H.map_cmd(mode, 'f', [[lua MiniJump.smart_jump(false, false)]])
-    H.map_cmd(mode, 'F', [[lua MiniJump.smart_jump(true, false)]])
-    H.map_cmd(mode, 't', [[lua MiniJump.smart_jump(false, true)]])
-    H.map_cmd(mode, 'T', [[lua MiniJump.smart_jump(true, true)]])
-    vim.cmd([[autocmd CursorMoved * lua MiniJump.on_cursor_moved()]])
+    local modes = { 'n', 'o', 'x' }
+    for _, mode in ipairs(modes) do
+      H.map_cmd(mode, 'f', [[lua MiniJump.smart_jump(1, false, false)]])
+      H.map_cmd(mode, 'F', [[lua MiniJump.smart_jump(1, true, false)]])
+      H.map_cmd(mode, 't', [[lua MiniJump.smart_jump(1, false, true)]])
+      H.map_cmd(mode, 'T', [[lua MiniJump.smart_jump(1, true, true)]])
+      vim.cmd([[autocmd CursorMoved * lua MiniJump.reset_target()]])
+    end
   end
 end
 
@@ -115,7 +144,11 @@ end
 
 ---- Various helpers
 function H.map_cmd(mode, key, command)
-  vim.api.nvim_set_keymap(mode, key, ':' .. command .. H.keys.cmd_end, { noremap = true })
+  local rhs = ('<cmd>%s<cr>'):format(command)
+  if mode == 'o' then
+    rhs = 'v' .. rhs
+  end
+  vim.api.nvim_set_keymap(mode, key, rhs, { noremap = true })
 end
 
 function H.escape(s)
@@ -127,8 +160,6 @@ H.keys = {
   bs        = H.escape('<bs>'),
   cr        = H.escape('<cr>'),
   del       = H.escape('<del>'),
-  cmd_start = H.escape('<cmd>'),
-  cmd_end   = H.escape('<cr>'),
   keep_undo = H.escape('<C-g>U'),
   -- NOTE: use `get_arrow_key()` instead of `H.keys.left` or `H.keys.right`
   left      = H.escape('<left>'),
@@ -158,8 +189,12 @@ function H.is_in_table(val, tbl)
   return false
 end
 
-function H.get_char()
-  return vim.fn.nr2char(vim.fn.getchar())
+function H.get_chars(num_chars)
+  local chars = ''
+  for _ = 1, num_chars do
+    chars = chars .. vim.fn.nr2char(vim.fn.getchar())
+  end
+  return chars
 end
 
 return MiniJump
