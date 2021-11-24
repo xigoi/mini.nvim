@@ -10,16 +10,17 @@
 --- # Setup
 ---
 --- This module needs a setup with `require('mini.cursorword').setup({})`
---- (replace `{}` with your `config` table).
+--- (replace `{}` with your `config` table). It will create global Lua table
+--- `MiniCursorword` which you can use for scripting or manually (with
+--- `:lua MiniCursorword.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----  -- Delay (in ms) between when cursor moved and when highlighting appeared
----  delay = 100,
---- }
---- </pre>
----
+--- <code>
+---   {
+---    -- Delay (in ms) between when cursor moved and when highlighting appeared
+---    delay = 100,
+---   }
+--- </code>
 --- # Highlight groups
 ---
 --- 1. `MiniCursorword` - highlight group of cursor word. Default: plain

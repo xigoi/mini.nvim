@@ -11,17 +11,18 @@
 --- # Setup
 ---
 --- This module needs a setup with `require('mini.trailspace').setup({})`
---- (replace `{}` with your `config` table).
+--- (replace `{}` with your `config` table). It will create global Lua table
+--- `MiniTrailspace` which you can use for scripting or manually (with
+--- `:lua MiniTrailspace.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----   -- Highlight only in normal buffers (ones with empty 'buftype'). This is
----   -- useful to not show trailing whitespace where it usually doesn't matter.
----   only_in_normal_buffers = true,
---- }
---- </pre>
----
+--- <code>
+---   {
+---     -- Highlight only in normal buffers (ones with empty 'buftype'). This is
+---     -- useful to not show trailing whitespace where it usually doesn't matter.
+---     only_in_normal_buffers = true,
+---   }
+--- </code>
 --- # Highlight groups
 ---
 --- 1. `MiniTrailspace` - highlight group for trailing space.
@@ -94,17 +95,7 @@ MiniTrailspace.config = {
 
 -- Functions to perform actions
 --- Highlight trailing whitespace
-function MiniTrailspace.highlight(check_modifiable)
-  -- Warn about deprecated `check_modifiable`
-  -- TODO: remove `check_modifiable`
-  if check_modifiable ~= nil then
-    vim.notify(
-      '(mini.trailspace) `check_modifiable` argument is deprecated and will be removed on 2021-10-30.'
-        .. [[ It was a result of poor design to disable highlighting where it usually doesn't matter.]]
-        .. [[ Use `config.only_in_normal_buffers`. Sorry for this.]]
-    )
-  end
-
+function MiniTrailspace.highlight()
   -- Highlight only in normal mode
   if H.is_disabled() or vim.fn.mode() ~= 'n' then
     MiniTrailspace.unhighlight()

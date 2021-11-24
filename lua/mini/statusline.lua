@@ -28,62 +28,60 @@
 --- # Setup
 ---
 --- This module needs a setup with `require('mini.statusline').setup({})`
---- (replace `{}` with your `config` table).
+--- (replace `{}` with your `config` table). It will create global Lua table
+--- `MiniStatusline` which you can use for scripting or manually (with
+--- `:lua MiniStatusline.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----   -- Content of statusline as functions which return statusline string. See `:h
----   -- statusline` and code of default contents (used when `nil` is supplied).
----   content = {
----     -- Content for active window
----     active = nil,
+--- <code>
+---   {
+---     -- Content of statusline as functions which return statusline string. See `:h
+---     -- statusline` and code of default contents (used when `nil` is supplied).
+---     content = {
+---       -- Content for active window
+---       active = nil,
 ---
----     -- Content for inactive window(s)
----     inactive = nil,
----   },
+---       -- Content for inactive window(s)
+---       inactive = nil,
+---     },
 ---
----   -- Whether to set Vim's settings for statusline (make it always shown)
----   set_vim_settings = true,
---- }
---- </pre>
----
+---     -- Whether to set Vim's settings for statusline (make it always shown)
+---     set_vim_settings = true,
+---   }
+--- </code>
 --- # Example content
 ---
 --- ## Default content
 ---
 --- This function is used as default value for active content:
---- <pre>
---- `function()`
----   `local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })`
----   `local git           = MiniStatusline.section_git({ trunc_width = 75 })`
----   `local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })`
----   `local filename      = MiniStatusline.section_filename({ trunc_width = 140 })`
----   `local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })`
----   `local location      = MiniStatusline.section_location({ trunc_width = 75 })`
+--- <code>
+---   function()
+---     local mode, mode_hl = MiniStatusline.section_mode({ trunc_width = 120 })
+---     local git           = MiniStatusline.section_git({ trunc_width = 75 })
+---     local diagnostics   = MiniStatusline.section_diagnostics({ trunc_width = 75 })
+---     local filename      = MiniStatusline.section_filename({ trunc_width = 140 })
+---     local fileinfo      = MiniStatusline.section_fileinfo({ trunc_width = 120 })
+---     local location      = MiniStatusline.section_location({ trunc_width = 75 })
 ---
----   `return MiniStatusline.combine_groups({`
----     `{ hl = mode_hl,                  strings = { mode } },`
----     `{ hl = 'MiniStatuslineDevinfo',  strings = { git, diagnostics } },`
----     `'%<', -- Mark general truncate point`
----     `{ hl = 'MiniStatuslineFilename', strings = { filename } },`
----     `'%=', -- End left alignment`
----     `{ hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },`
----     `{ hl = mode_hl,                  strings = { location } },`
----   `})`
---- `end`
---- </pre>
----
+---     return MiniStatusline.combine_groups({
+---       { hl = mode_hl,                  strings = { mode } },
+---       { hl = 'MiniStatuslineDevinfo',  strings = { git, diagnostics } },
+---       '%<', -- Mark general truncate point
+---       { hl = 'MiniStatuslineFilename', strings = { filename } },
+---       '%=', -- End left alignment
+---       { hl = 'MiniStatuslineFileinfo', strings = { fileinfo } },
+---       { hl = mode_hl,                  strings = { location } },
+---     })
+---   end
+--- </code>
 --- ## Show boolean options
 ---
 --- To compute section string for boolean option use variation of this code
 --- snippet inside content function (you can modify option itself, truncation
 --- width, short and long displayed names):
----
---- <pre>
---- `local spell = vim.wo.spell and (MiniStatusline.is_truncated(120) and 'S' or 'SPELL') or ''`
---- </pre>
----
+--- <code>
+---   local spell = vim.wo.spell and (MiniStatusline.is_truncated(120) and 'S' or 'SPELL') or ''
+--- </code>
 --- Here `x and y or z` is a common Lua way of doing ternary operator: if `x`
 --- is `true`-ish then return `y`, if not - return `z`.
 ---
@@ -206,7 +204,7 @@ end
 --- used). Non-empty strings inside group are separated by one space. Non-empty
 --- groups are separated by two spaces (one for each highlighting).
 ---
----@param groups table: List of groups
+---@param groups table: Array of groups
 ---@return string: String suitable for 'statusline'.
 function MiniStatusline.combine_groups(groups)
   local t = vim.tbl_map(function(s)
@@ -280,71 +278,13 @@ MiniStatusline.modes = setmetatable({
 --- Short output is returned if window width is lower than `args.trunc_width`.
 ---
 ---@param args table: Section arguments.
----@return section_string, mode_hl tuple: Section string and mode's highlight group.
+---@return tuple: Section string and mode's highlight group.
 function MiniStatusline.section_mode(args)
   local mode_info = MiniStatusline.modes[vim.fn.mode()]
 
   local mode = MiniStatusline.is_truncated(args.trunc_width) and mode_info.short or mode_info.long
 
   return mode, mode_info.hl
-end
-
---- Section for 'spell'
----
---- Short output is returned if window width is lower than `args.trunc_width`.
----
----@param args table: Section arguments.
----@return string: Section string.
-function MiniStatusline.section_spell(args)
-  if not H.is_deprecation_showed then
-    vim.notify(
-      [[(mini.statusline) `MiniStatusline.section_spell` is deprecated in favor of custom manual code snippet.]]
-        .. [[ It will be removed on 2021-10-30.]]
-        .. [[ This was a poor design choice because for average user 'spell' option is not that specially important.]]
-        .. [[ For replacement see section 'Show boolean options' in help page for 'mini.statusline'.]]
-        .. [[ Sorry about this.]]
-    )
-    H.is_deprecation_showed = true
-  end
-
-  if not vim.wo.spell then
-    return ''
-  end
-
-  if MiniStatusline.is_truncated(args.trunc_width) then
-    return 'SP'
-  end
-
-  return string.format('SPELL(%s)', vim.bo.spelllang)
-end
-
---- Section for 'wrap'
----
---- Short output is returned if window width is lower than `args.trunc_width`.
----
----@param args table: Section arguments.
----@return string: Section string.
-function MiniStatusline.section_wrap(args)
-  if not H.is_deprecation_showed then
-    vim.notify(
-      [[(mini.statusline) `MiniStatusline.section_wrap` is deprecated in favor of custom manual code snippet.]]
-        .. [[ It will be removed on 2021-10-30.]]
-        .. [[ This was a poor design choice because for average user 'wrap' option is not that specially important.]]
-        .. [[ For replacement see section 'Show boolean options' in help page for 'mini.statusline'.]]
-        .. [[ Sorry about this.]]
-    )
-    H.is_deprecation_showed = true
-  end
-
-  if not vim.wo.wrap then
-    return ''
-  end
-
-  if MiniStatusline.is_truncated(args.trunc_width) then
-    return 'WR'
-  end
-
-  return 'WRAP'
 end
 
 --- Section for Git information
@@ -483,6 +423,37 @@ function MiniStatusline.section_location(args)
   end
 
   return '%l|%L│%2v|%-2{col("$") - 1}'
+end
+
+--- Section for current search count
+---
+--- Show the current status of |searchcount()|. Empty output is returned if
+--- window width is lower than `args.trunc_width`, search highlighting is not
+--- on (see |v:hlsearch|), or if number of search result is 0.
+---
+--- `args.options` is forwarded to |searchcount()|.  By default it recomputes
+--- data on every call which can be computationally expensive (although still
+--- usually same order of magnitude as 0.1 ms). To prevent this, supply
+--- `args.options = {recompute = false}`.
+---
+---@param args table: Section arguments.
+---@return string: Section string.
+function MiniStatusline.section_searchcount(args)
+  if vim.v.hlsearch == 0 or MiniStatusline.is_truncated(args.trunc_width) then
+    return ''
+  end
+  local s_count = vim.fn.searchcount((args or {}).options or { recompute = true })
+  if s_count.current == nil or s_count.total == 0 then
+    return ''
+  end
+
+  if s_count.incomplete == 1 then
+    return '?/?'
+  end
+
+  local total_sign = s_count.total > s_count.maxcount and '>' or ''
+  local current_sign = s_count.current > s_count.maxcount and '>' or ''
+  return ('%s%d/%s%d'):format(current_sign, s_count.current, total_sign, s_count.total)
 end
 
 -- Helper data

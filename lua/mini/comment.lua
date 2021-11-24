@@ -14,28 +14,30 @@
 --- # Setup
 ---
 --- This module needs a setup with `require('mini.comment').setup({})` (replace
---- `{}` with your `config` table).
+--- `{}` with your `config` table). It will create global Lua table
+--- `MiniComment` which you can use for scripting or manually (with
+--- `:lua MiniComment.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----   -- Module mappings. Use `''` (empty string) to disable one.
----   mappings = {
----     -- Toggle comment (like `gcip` - comment inner paragraph) for both
----     -- Normal and Visual modes
----     comment = 'gc',
+--- <code>
+---   {
+---     -- Module mappings. Use `''` (empty string) to disable one.
+---     mappings = {
+---       -- Toggle comment (like `gcip` - comment inner paragraph) for both
+---       -- Normal and Visual modes
+---       comment = 'gc',
 ---
----     -- Toggle comment on current line
----     comment_line = 'gcc',
+---       -- Toggle comment on current line
+---       comment_line = 'gcc',
 ---
----     -- Define 'comment' textobject (like `dgc` - delete whole comment block)
----     textobject = 'gc',
+---       -- Define 'comment' textobject (like `dgc` - delete whole comment block)
+---       textobject = 'gc',
+---     }
 ---   }
---- }
---- </pre>
----
+--- </code>
 --- # Disabling
---- To disable core functionality, set `g:minicomment_disable` (globally) or -
+---
+--- To disable core functionality, set `g:minicomment_disable` (globally) or
 --- `b:minicomment_disable` (for a buffer) to `v:true`.
 ---@brief ]]
 ---@tag MiniComment mini.comment
@@ -224,7 +226,11 @@ function H.apply_config(config)
   MiniComment.config = config
 
   -- Make mappings
-  H.keymap('n', config.mappings.comment, 'v:lua.MiniComment.operator()', { expr = true, noremap = true, silent = true })
+  H.keymap('n', config.mappings.comment, 'v:lua.MiniComment.operator()', {
+    expr = true,
+    noremap = true,
+    silent = true,
+  })
   H.keymap(
     'x',
     config.mappings.comment,

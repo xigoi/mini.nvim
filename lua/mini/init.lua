@@ -25,13 +25,13 @@
 ---       You can supply only values which differ from defaults, which will be
 ---       used for the rest ones.
 ---     - Call to module's `setup()` always creates a global Lua object with
----       coherent camel-case name: `require('mini.suround').setup()` creates
+---       coherent camel-case name: `require('mini.surround').setup()` creates
 ---       `_G.MiniSurround`. This allows for a simpler usage of plugin
 ---       functionality: instead of `require('mini.surround')` use
----       `MiniSurround`; available from |v:lua| with `v:lua.MiniSurround`.
----       Considering this, "module" and "Lua object" names can be used
----       interchangeably: 'mini.surround' and 'MiniSurround' will mean the
----       same thing.
+---       `MiniSurround` (or manually `:lua MiniSurround.*` in command line);
+---       available from `v:lua` like `v:lua.MiniSurround`. Considering this,
+---       "module" and "Lua object" names can be used interchangeably:
+---       'mini.surround' and 'MiniSurround' will mean the same thing.
 ---     - Each supplied `config` table (after extending with default values) is
 ---       stored in `config` field of global object. Like `MiniSurround.config`.
 ---     - Values of `config`, which affect runtime activity, can be changed on
@@ -77,11 +77,19 @@
 --- - |MiniFuzzy| - functions for fast and simple fuzzy matching. It has
 ---   not only functions to perform fuzzy matching of one string to others, but
 ---   also a sorter for |telescope.nvim|.
+--- - |MiniJump| - minimal and fast module for smarter jumping to a single
+---   character.
 --- - |MiniMisc| - collection of miscellaneous useful functions. Like `put()`
 ---   and `put_text()` which print Lua objects to command line and current
 ---   buffer respectively.
 --- - |MiniPairs| - autopairs plugin which has minimal defaults and
 ---   functionality to do per-key expression mappings.
+--- - |MiniSessions| - session management (read, write, delete) which works
+---   using |mksession|.
+--- - |MiniStarter| - minimal, fast, and flexible start screen. Displayed items
+---   are fully customizable both in terms of what they do and how they look
+---   (with reasonable defaults). Item selection can be done using prefix query
+---   with instant visual feedback.
 --- - |MiniStatusline| - minimal and fast statusline. Has ability to use custom
 ---   content supplied with concise function (using module's provided section
 ---   functions) along with builtin default. For full experience needs [Nerd

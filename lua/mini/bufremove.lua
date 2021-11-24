@@ -13,16 +13,16 @@
 ---
 --- This module doesn't need setup, but it can be done to improve usability.
 --- Setup with `require('mini.bufremove').setup({})` (replace `{}` with your
---- `config` table).
+--- `config` table). It will create global Lua table `MiniBufremove` which you
+--- can use for scripting or manually (with `:lua MiniBufremove.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----   -- Whether to set Vim's settings for buffers (allow hidden buffers)
----   set_vim_settings = true,
---- }
---- </pre>
----
+--- <code>
+---   {
+---     -- Whether to set Vim's settings for buffers (allow hidden buffers)
+---     set_vim_settings = true,
+---   }
+--- </code>
 --- # Notes
 --- 1. Which buffer to show in window(s) after its current buffer is removed is
 ---    decided by the algorithm:

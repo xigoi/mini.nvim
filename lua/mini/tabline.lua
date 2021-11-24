@@ -29,20 +29,21 @@
 --- # Setup
 ---
 --- This module needs a setup with `require('mini.tabline').setup({})`
---- (replace `{}` with your `config` table).
+--- (replace `{}` with your `config` table). It will create global Lua table
+--- `MiniTabline` which you can use for scripting or manually (with
+--- `:lua MiniTabline.*`).
 ---
 --- Default `config`:
---- <pre>
---- {
----   -- Whether to show file icons (requires 'kyazdani42/nvim-web-devicons')
----   show_icons = true,
+--- <code>
+---   {
+---     -- Whether to show file icons (requires 'kyazdani42/nvim-web-devicons')
+---     show_icons = true,
 ---
----   -- Whether to set Vim's settings for tabline (make it always shown and
----   -- allow hidden buffers)
----   set_vim_settings = true
---- }
---- </pre>
----
+---     -- Whether to set Vim's settings for tabline (make it always shown and
+---     -- allow hidden buffers)
+---     set_vim_settings = true
+---   }
+--- </code>
 --- # Highlight groups
 ---
 --- 1. `MiniTablineCurrent` - buffer is current (has cursor in it).
@@ -357,9 +358,9 @@ function H.finalize_labels()
   end
 end
 
---@return List of `H.tabs` ids which have non-unique labels
+--@return Array of `H.tabs` ids which have non-unique labels
 function H.get_nonunique_tab_ids()
-  -- Collect tab-list-id per label
+  -- Collect tab-array-id per label
   local label_tab_ids = {}
   for i, tab in ipairs(H.tabs) do
     local label = tab.label
@@ -370,7 +371,7 @@ function H.get_nonunique_tab_ids()
     end
   end
 
-  -- Collect tab-list-ids with non-unique labels
+  -- Collect tab-array-ids with non-unique labels
   return vim.tbl_flatten(vim.tbl_filter(function(x)
     return #x > 1
   end, label_tab_ids))
